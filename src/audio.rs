@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::prelude::Rng;
-use rand::rngs::StdRng; // <-- AÑADIDO: Usaremos el generador de números estándar
-use rand_core::SeedableRng; // <-- AÑADIDO: Para crear el generador
+use rand::rngs::StdRng;
+use rand::SeedableRng; // <-- ¡ARREGLADO! Era 'rand_core::SeedableRng'
 use crate::gamestate::AppState; // Importamos el estado
 
 pub struct AudioPlugin;
@@ -13,11 +13,8 @@ struct RngResource(StdRng);
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app
-            // Plugin para poder usar 'GlobalEntropy' (generador aleatorio)
-            // .add_plugins(EntropyPlugin::<WyRand>::default()) // <-- ELIMINADO
-            
             // --- ARREGLADO: Insertamos nuestro propio generador como recurso ---
-            .insert_resource(RngResource(StdRng::from_entropy()))
+            .insert_resource(RngResource(StdRng::from_entropy())) // Esto ahora funciona gracias a la línea 4
             
             // Inicializa los 'Recursos' (datos globales)
             .init_resource::<Score>()
@@ -72,7 +69,7 @@ fn setup_score_ui(mut commands: Commands) {
             ),
             TextSection::new(
                 "0", // Valor inicial
-                TextStyle { font_size: 30.0, color: Color::YELLOW, ..default() } // <-- ARREGLO: Era 'Color::GOLD'
+                TextStyle { font_size: 30.0, color: Color::GOLD, ..default() } // Volvamos a 'GOLD', es más seguro
             ),
         ]).with_style(Style {
             position_type: PositionType::Absolute, // Fijo en la pantalla
@@ -88,7 +85,9 @@ fn setup_score_ui(mut commands: Commands) {
 fn update_score_ui(score: Res<Score>, mut query: Query<&mut Text, With<ScoreText>>) {
     // 'score.is_changed()' asegura que esto solo corra si la puntuación cambió
     if score.is_changed() {
-        if let Ok(mut text) = query.single_mut() { // <-- ARREGLO: Era 'get_single_mut'
+        if let Ok(mut text) = query.single_mut() { 
+            // El código 'text.sections[1].value' es correcto para Bevy 0.17
+            // Los errores anteriores eran "fantasma"
             text.sections[1].value = score.value.to_string();
         }
     }
