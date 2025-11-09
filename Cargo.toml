@@ -1,10 +1,10 @@
 [package]
 name = "finalSistemasDinamicos"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 bevy = "0.17.2"
 
-bevy_rand = "0.7"
+
 rand = "0.8"

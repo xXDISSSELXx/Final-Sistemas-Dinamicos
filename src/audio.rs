@@ -1,15 +1,23 @@
 use bevy::prelude::*;
-use bevy_rand::prelude::*; // Para el generador de números aleatorios
 use rand::prelude::Rng;
+use rand::rngs::StdRng; // <-- AÑADIDO: Usaremos el generador de números estándar
+use rand_core::SeedableRng; // <-- AÑADIDO: Para crear el generador
 use crate::gamestate::AppState; // Importamos el estado
 
 pub struct AudioPlugin;
+
+// --- AÑADIDO: Un recurso para guardar nuestro generador de números ---
+#[derive(Resource)]
+struct RngResource(StdRng);
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app
             // Plugin para poder usar 'GlobalEntropy' (generador aleatorio)
-            .add_plugins(EntropyPlugin::<WyRand>::default())
+            // .add_plugins(EntropyPlugin::<WyRand>::default()) // <-- ELIMINADO
+            
+            // --- ARREGLADO: Insertamos nuestro propio generador como recurso ---
+            .insert_resource(RngResource(StdRng::from_entropy()))
             
             // Inicializa los 'Recursos' (datos globales)
             .init_resource::<Score>()
@@ -64,7 +72,7 @@ fn setup_score_ui(mut commands: Commands) {
             ),
             TextSection::new(
                 "0", // Valor inicial
-                TextStyle { font_size: 30.0, color: Color::GOLD, ..default() }
+                TextStyle { font_size: 30.0, color: Color::YELLOW, ..default() } // <-- ARREGLO: Era 'Color::GOLD'
             ),
         ]).with_style(Style {
             position_type: PositionType::Absolute, // Fijo en la pantalla
@@ -80,7 +88,7 @@ fn setup_score_ui(mut commands: Commands) {
 fn update_score_ui(score: Res<Score>, mut query: Query<&mut Text, With<ScoreText>>) {
     // 'score.is_changed()' asegura que esto solo corra si la puntuación cambió
     if score.is_changed() {
-        if let Ok(mut text) = query.get_single_mut() {
+        if let Ok(mut text) = query.single_mut() { // <-- ARREGLO: Era 'get_single_mut'
             text.sections[1].value = score.value.to_string();
         }
     }
@@ -93,7 +101,7 @@ fn audio_command_system(
     time: Res<Time>,
     mut timer: ResMut<AudioCommandTimer>,
     mut current_command: ResMut<AudioCommand>,
-    mut rng: ResMut<GlobalEntropy<WyRand>>, // Generador aleatorio
+    mut rng: ResMut<RngResource>, // <-- ARREGLADO: Usamos nuestro 'RngResource'
 ) {
     // Si el comando actual NO es 'None', significa que estamos esperando respuesta
     // No damos un nuevo comando hasta que el jugador responda.
@@ -104,7 +112,7 @@ fn audio_command_system(
     // Avanza el temporizador
     if timer.0.tick(time.delta()).just_finished() {
         // Elige un comando aleatorio (0, 1, o 2)
-        let choice = rng.gen_range(0..3);
+        let choice = rng.0.gen_range(0..3); // <-- ARREGLADO: Usamos 'rng.0'
         let (next_command, sound_file) = match choice {
             0 => (AudioCommand::Left, "audio/left.ogg"),
             1 => (AudioCommand::Right, "audio/right.ogg"),

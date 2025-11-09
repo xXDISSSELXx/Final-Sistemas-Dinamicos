@@ -55,17 +55,17 @@ fn player_movement_system(
     time: Res<Time>,
 ) {
     // Obtenemos el jugador (si existe)
-    if let Ok((mut transform, mut velocity)) = query.get_single_mut() {
+    if let Ok((mut transform, mut velocity)) = query.single_mut() { // <-- ARREGLO: Era 'get_single_mut'
         
         // Revisa si el jugador está en el suelo
         let on_ground = transform.translation.y <= GROUND_LEVEL;
 
         // Movimiento Izquierda / Derecha
         if keys.pressed(KeyCode::ArrowLeft) {
-            transform.translation.x -= PLAYER_SPEED * time.delta_seconds();
+            transform.translation.x -= PLAYER_SPEED * time.delta_secs(); // <-- ARREGLO: Era 'delta_seconds'
         }
         if keys.pressed(KeyCode::ArrowRight) {
-            transform.translation.x += PLAYER_SPEED * time.delta_seconds();
+            transform.translation.x += PLAYER_SPEED * time.delta_secs(); // <-- ARREGLO: Era 'delta_seconds'
         }
 
         // Salto
@@ -80,12 +80,12 @@ fn simple_physics_system(
     mut query: Query<(&mut Transform, &mut Velocity), With<Player>>,
     time: Res<Time>,
 ) {
-    if let Ok((mut transform, mut velocity)) = query.get_single_mut() {
+    if let Ok((mut transform, mut velocity)) = query.single_mut() { // <-- ARREGLO: Era 'get_single_mut'
         // 1. Aplica gravedad a la velocidad
-        velocity.y += GRAVITY * time.delta_seconds();
+        velocity.y += GRAVITY * time.delta_secs(); // <-- ARREGLO: Era 'delta_seconds'
         
         // 2. Aplica la velocidad a la posición
-        transform.translation.y += velocity.y * time.delta_seconds();
+        transform.translation.y += velocity.y * time.delta_secs(); // <-- ARREGLO: Era 'delta_seconds'
 
         // 3. Colisión con el suelo
         if transform.translation.y < GROUND_LEVEL {

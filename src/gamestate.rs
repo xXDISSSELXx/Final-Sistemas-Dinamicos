@@ -8,7 +8,7 @@ impl Plugin for GameStatePlugin {
         app
             // 1. Define los estados
             .init_state::<AppState>()
-            .set_state(AppState::Inicio) // Estado inicial
+            .insert_state(AppState::Inicio) // <-- ARREGLO: Era 'set_state'
             
             // 2. Sistemas para el estado de INICIO
             .add_systems(OnEnter(AppState::Inicio), setup_menu_inicio)
@@ -106,6 +106,6 @@ fn check_pause_input(
 // Sistema genérico que borra toda entidad con el componente 'MenuUI'
 fn cleanup_menu(mut commands: Commands, query: Query<Entity, With<MenuUI>>) {
     for entity in query.iter() {
-        commands.entity(entity).despawn_recursive(); // Borra la entidad y sus hijos
+        commands.entity(entity).despawn(); // <-- ARREGLO: Era 'despawn_recursive'
     }
 }
